@@ -7,9 +7,6 @@
 static  int radianocircle1 = 2;
 double rotacao=0;
 bool clicou = false;
-bool rodar = false;
-
-
 float rotacaoperna1 = 0;
 float rotacaoperna11=0;
 float rotacaoperna2 = 0;
@@ -35,66 +32,45 @@ double y_float;
 
 double x_ut=0;
 double y_ut=0;
-int move=0;
 
+//constante para conversao de radianos para graus
 double constante = 57.295;
 
-struct vetor{
-	double x,y;
-};
 
-vetor v1;
-vetor v2;
-
-
+//funcao que calcula angulo de rotacao entre dois vetores (Atan2 da biblioteca Math.h)
 double angulo(void){
 
 	return atan2(y_float-y_ut,x_float-x_ut)*constante;
 }
 
+//funcao que calcula coordenadas para pixel (utilizada para ponto de parada do movimento das pernas)
 void convertpixel(float x, float y){
 	x_pixeldestino=(x_ut+6)/(12.0/wsize_x);
 	y_pixeldestino=-(y_ut-6)/(12.0/wsize_y);
 	
 }
 
-
+//funcao de animação do movimento da aranha e das pernas
 void movimento (int passo){
-
-		if(clicou){
-		
 		if(x_ut <= x_float){
 			x_ut += 0.03;
 			
 		}
-	
-		
 		if (y_ut <= y_float) {
 			y_ut += 0.03;
 		} 
-		
-		
 		if(x_ut>=x_float){
 			x_ut -= 0.03;
 		}
-		
-	
 		if(y_ut >= y_float){
 			y_ut -= 0.03;
-			
-	
 	}
 	
+	//convertendo coordenadas para pixel(adaptacao para decisao de melhor ponto de parada)
 	convertpixel((GLint)x_ut,(GLint)y_ut);
 	
 	if(((x_pixel-x_pixeldestino<=3 and x_pixeldestino-x_pixel<=3)) and y_pixel-y_pixeldestino<=3 and y_pixeldestino - y_pixel <=3 )direcao = 1000;
-
-
-	   
-	
-	
 	if(direcao==0){
-		    
 		    rotacaoperna1 += 0.2;
 		    rotacaoperna11 += 0.2;
 		    rotacaoperna2 -= 0.2;
@@ -105,10 +81,7 @@ void movimento (int passo){
 			rotacaoperna41 -= 0.2;
 			
 	}
-	
-	
 	if(rotacaoperna2<-8) direcao = 1;	
-	
 	if(direcao==1){
 			rotacaoperna1 -= 0.2;
 		    rotacaoperna11 -= 0.2;
@@ -122,10 +95,6 @@ void movimento (int passo){
 	}
 
 	if(rotacaoperna2>8) direcao = 0;
-	}
-	
-		
-
 	glutPostRedisplay();
 	glutTimerFunc(10,movimento,1);
 }
@@ -134,6 +103,7 @@ void init(void){
   glClearColor (0.0, 0.0, 0.0, 0.0);
 }
 
+//funcao que desenha corpo ou olho da aranha (calculada pelo raio e num of segments)
 void corpo(float cx, float cy, float r, int num_segments)
 {
     glBegin(GL_LINE_LOOP);
@@ -147,22 +117,7 @@ void corpo(float cx, float cy, float r, int num_segments)
     glEnd();
 }
 
-
-
-void olho(float cx, float cy, float r, int num_segments)
-{
-    glBegin(GL_LINE_LOOP);
-    for(int i = 0; i < num_segments; i++)
-    {
-        float theta = 2.0f * 3.1415926f * float(i) / float(num_segments);
-        float x = r * cosf(theta);
-        float y = r * sinf(theta);
-        glVertex2f(x + cx, y + cy);
-    }
-    glEnd();
-}
-
-
+//funao que desenha perna e articulacoes da aranha
 void perna(float x1,float y1, float x2, float y2){
  glBegin(GL_LINES);
  glColor3f(1.0,1.0,1.0);
@@ -172,10 +127,12 @@ void perna(float x1,float y1, float x2, float y2){
  
 }
 
+//funcao que exibi objeto na cena
 void display(void){
-	
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 glPushMatrix();	
 
+//rotaciona aranha
 if(clicou){
 	
 glTranslated(x_ut,y_ut,0.0);
@@ -184,15 +141,8 @@ glTranslated(-x_ut,-y_ut,0.0);
 
 }
 
-glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-//Copiando matriz original
-
-
-//Fazendo translação cefalotorax
-
-
+//desenha cefalotórax e translada de acordo com clique
 glTranslated(x_ut,y_ut,0.0);
 corpo(0.00,0.00,0.35,50);
 glPushMatrix();
@@ -258,40 +208,40 @@ perna(0.82,0.05,1.3,-1.1);
 glPopMatrix();
 
 glPushMatrix();
-//Posiciondo olho direito
+//Posiciona olho direito
 glTranslated(0.15,0.1,0.0);
-olho(0.0,0.0,0.055,50);
-//Posicionando olho esquerdo
+corpo(0.0,0.0,0.055,50);
+//Posiciona olho esquerdo
 glTranslated(-0.3,0.0,0.0);
-olho(0.0,0.0,0.055,50);
+corpo(0.0,0.0,0.055,50);
 //voltando a matriz de origem
 glPopMatrix();
 
 
 
 
-//Copia matriz de origem
+//desenha abdomen
 glTranslated(0.0,-1.0,0.0);
 corpo(0.0,0.06,0.6,50);
 glPopMatrix();
+
 glFlush();
-  glutSwapBuffers();
+glutSwapBuffers();
 }
 
 
 
 void reshape (int w, int h){
+  //define janela de visualizaçao
   glViewport (0, 0, (GLsizei) w, (GLsizei) h);
+  //defini matriz de projecao
   glMatrixMode (GL_PROJECTION);
-  glLoadIdentity ();
-  //gluPerspective(90.0, (GLfloat) w/(GLfloat) h, 1.0, 20.0);
+  //carrega matriz identidade
+   glLoadIdentity ();  
+  //define as coordenadas do volume de recorte 
   glOrtho(-6,6,-6,6,-6,6);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  //glTranslatef (0.0, 0.0, -5.0);
+ 
 }
-
-
 
 
 void mouse(GLint button, GLint action, GLint x, GLint y)
@@ -303,33 +253,19 @@ void mouse(GLint button, GLint action, GLint x, GLint y)
     	x_pixel = x;
     	y_pixel = y;
     	clicou = true;
-    	rodar = true;
-    	convertpixel((GLint)x_ut,(GLint)y_ut);
+    	//calcula angulo de rotacao
     	double angle = angulo();
     	rotacao = angle;
-    	printf("%f \n",angle);
+    	//converte para coordenadas da projecao
     	x_float = x_pixel*(12.0/wsize_x) -6;
         y_float = 6 - y_pixel*(12.0/wsize_y);
-    	direcao = 0;
-    	//rotacao = angulo()*2;
-    	
-    	
+        //inicia movimento ao clique
+    	direcao = 0;	
       break;
-    }
-    case GLUT_MIDDLE_BUTTON:
-    {
-
-      break;
-    }
-    case GLUT_RIGHT_BUTTON:
-    {
-      break;
-    }
+    } 
     default: break;
   }
-
 	 display();
-
  }
  
 
@@ -338,9 +274,6 @@ void mouse(GLint button, GLint action, GLint x, GLint y)
 int main(int argc, char** argv){
   glutInit(&argc, argv);
   glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
-  
-
-  
   glutInitWindowSize (wsize_x,wsize_y); 
   glutInitWindowPosition (100,0);
   glutCreateWindow (argv[0]);
